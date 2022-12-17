@@ -1,4 +1,4 @@
-import { readInput } from '../utils.mjs';
+import { readInput } from '../../utils.mjs';
 
 async function part1() {
     return Array.from((await readInput(import.meta.url))[0]).findIndex((_, index, chars) => {

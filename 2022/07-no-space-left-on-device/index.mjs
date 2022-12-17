@@ -1,4 +1,4 @@
-import { readInput, sum } from '../utils.mjs';
+import { readInput, sum } from '../../utils.mjs';
 
 function createDirectory(cwd, name, directory) {
     if (cwd.length === 0) {

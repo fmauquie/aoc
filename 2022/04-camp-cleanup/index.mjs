@@ -1,4 +1,4 @@
-import { readInput } from '../utils.mjs';
+import { readInput } from '../../utils.mjs';
 
 async function readAssignments() {
     return (await readInput(import.meta.url))

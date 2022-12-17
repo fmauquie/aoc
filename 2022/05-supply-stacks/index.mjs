@@ -1,4 +1,4 @@
-import { readInput } from '../utils.mjs';
+import { readInput } from '../../utils.mjs';
 
 // A stack is an array, the element on top is the head (index 0)
 // There is a virtual "0th" stack, that reads its crates from out of the file

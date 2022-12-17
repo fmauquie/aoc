@@ -1,4 +1,4 @@
-import { readInput, sum } from '../utils.mjs';
+import { readInput, sum } from '../../utils.mjs';
 
 const WIN = 6
 const DRAW = 3

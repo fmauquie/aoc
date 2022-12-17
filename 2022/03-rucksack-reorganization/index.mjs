@@ -1,4 +1,4 @@
-import { readInput, sum } from '../utils.mjs';
+import { readInput, sum } from '../../utils.mjs';
 
 const byPriority = ({ priority: p1 }, { priority: p2 }) => p2 - p1
 const toPriority = item => parseInt(item, 36) - 9 +

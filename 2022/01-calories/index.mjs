@@ -1,4 +1,4 @@
-import { readInput, sum } from '../utils.mjs';
+import { readInput, sum } from '../../utils.mjs';
 
 async function calories() {
     const elves = (await readInput(import.meta.url)).reduce((acc, line) => {
