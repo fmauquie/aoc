@@ -7,6 +7,8 @@ export async function readInput(importMetaUrl) {
 
 export const sum = (a, b) => a + b
 
+export const identity = (a) => a
+
 export function log(value) {
     console.log(value)
     return value
