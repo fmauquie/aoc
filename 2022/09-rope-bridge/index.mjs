@@ -25,53 +25,42 @@ function moveKnot(knots, index) {
     }
 }
 
-async function parseInput() {
-    return (await readInput(import.meta.url))
-        .map(move => move.split(' '))
-        .map(([direction, nb], index) => ({ direction, nb: parseInt(nb, 10), index }))
-        .flatMap(move => Array.from(new Array(move.nb)).map((_, index) => ({
-            from: move,
-            index,
-            dx: 0, dy: 0,
-            ...move.direction === 'R' && { dx: 1 },
-            ...move.direction === 'L' && { dx: -1 },
-            ...move.direction === 'D' && { dy: 1 },
-            ...move.direction === 'U' && { dy: -1 },
-        })));
+async function parseInput(nbKnots) {
+    return Object.keys(
+        (await readInput(import.meta.url))
+            .map(move => move.split(' '))
+            .map(([direction, nb], index) => ({ direction, nb: parseInt(nb, 10), index }))
+            .flatMap(move => Array.from(new Array(move.nb)).map((_, index) => ({
+                from: move,
+                index,
+                dx: 0, dy: 0,
+                ...move.direction === 'R' && { dx: 1 },
+                ...move.direction === 'L' && { dx: -1 },
+                ...move.direction === 'D' && { dy: 1 },
+                ...move.direction === 'U' && { dy: -1 },
+            })))
+            .reduce((state, move) => {
+                state.knots[0].x += move.dx
+                state.knots[0].y += move.dy
+
+                state.knots.slice(1).forEach((_, index) => moveKnot(state.knots, index + 1))
+                state.tailPositions[`${state.knots[nbKnots - 1].x},${state.knots[nbKnots - 1].y}`] = true
+
+                return state
+            }, {
+                knots: Array.from(new Array(nbKnots)).map(() => ({ x: 0, y: 0 })),
+                tailPositions: { '0,0': true }
+            })
+            .tailPositions
+    ).length
 }
 
 async function part1() {
-    return Object.keys((await parseInput())
-        .reduce((state, move) => {
-            state.knots[0].x += move.dx
-            state.knots[0].y += move.dy
-
-            moveKnot(state.knots, 1)
-            state.tailPositions[`${state.knots[1].x},${state.knots[1].y}`] = true
-
-            return state
-        }, {
-            knots: [{ x: 0, y: 0 }, { x: 0, y: 0 }],
-            tailPositions: { '0,0': true }
-        })
-        .tailPositions).length
+    return await parseInput(2)
 }
 
 async function part2() {
-    return Object.keys((await parseInput())
-        .reduce((state, move) => {
-            state.knots[0].x += move.dx
-            state.knots[0].y += move.dy
-
-            state.knots.slice(1).forEach((_, index) => moveKnot(state.knots, index + 1))
-            state.tailPositions[`${state.knots[9].x},${state.knots[9].y}`] = true
-
-            return state
-        }, {
-            knots: Array.from(new Array(10)).map(() => ({ x: 0, y: 0 })),
-            tailPositions: { '0,0': true }
-        })
-        .tailPositions).length
+    return await parseInput(10)
 }
 
 console.log(await part1().catch(console.error))
