@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 
-export async function readInput(importMetaUrl) {
-    const input = await fs.readFile(new URL('input', importMetaUrl), 'utf-8')
+export async function readInput(importMetaUrl, file = 'input') {
+    const input = await fs.readFile(new URL(file, importMetaUrl), 'utf-8')
     return input.split('\n').slice(0, -1)
 }
 
