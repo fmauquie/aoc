@@ -5,6 +5,10 @@ export async function readInput(importMetaUrl, file = 'input') {
     return input.split('\n').slice(0, -1)
 }
 
+export async function dump(data, importMetaUrl, file='dump') {
+    await fs.writeFile(new URL(file, importMetaUrl), JSON.stringify(data, null, 2), 'utf-8')
+}
+
 export const sum = (a, b) => a + b
 
 export const identity = (a) => a
