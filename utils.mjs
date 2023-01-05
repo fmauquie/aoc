@@ -11,6 +11,8 @@ export async function dump(data, importMetaUrl, file='dump') {
 
 export const sum = (a, b) => a + b
 
+export const multiply = (a, b) => a * b
+
 export const identity = (a) => a
 
 export const numbers = (a, b) => a - b

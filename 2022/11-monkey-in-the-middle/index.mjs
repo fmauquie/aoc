@@ -1,4 +1,4 @@
-import { numbers, readInput } from '../../utils.mjs';
+import { multiply, numbers, readInput } from '../../utils.mjs';
 
 function parseOperation(operation) {
     const [_, operator, parsedOperand] = operation.match(/new = old (.) (old|\d+)/)
@@ -123,7 +123,7 @@ async function part1() {
         }), {})
     })
 
-    return Object.values(after20rounds.inspected).sort(numbers).reverse().slice(0, 2).reduce((acc, value) => acc * value, 1)
+    return Object.values(after20rounds.inspected).sort(numbers).reverse().slice(0, 2).reduce(multiply, 1)
 }
 
 async function part2() {
@@ -137,7 +137,7 @@ async function part2() {
         }), {})
     })
 
-    return Object.values(after10000rounds.inspected).sort(numbers).reverse().slice(0, 2).reduce((acc, value) => acc * value, 1)
+    return Object.values(after10000rounds.inspected).sort(numbers).reverse().slice(0, 2).reduce(multiply, 1)
 }
 
 console.log(await part1().catch(console.error))
