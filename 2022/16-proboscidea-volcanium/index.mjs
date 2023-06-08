@@ -1,4 +1,3 @@
-import fs from "node:fs/promises"
 import { readInput, sum } from "../../utils.mjs"
 
 const valves = (await readInput(import.meta.url, "input"))
@@ -116,48 +115,8 @@ function computePathScore(path = [], log = false) {
 const interestingValves = valves.filter(({ rate }) => rate > 0)
   .map(({ name }) => name)
 
-function bestChoice(c1, c2, order) {
-  if (order === 0) {
-    return "==="
-  } else if (order < 0) {
-    return c2
-  } else {
-    return c1
-  }
-}
-
 function pathDuration(path) {
   return path.reduce((acc, valve, i) => acc + shortestPath(path[i - 1] ?? "AA", valve).length, 0) + path.length
-}
-
-function nextValves(position, openedValves) {
-  const nbMinutesRemaining = 30 - pathDuration(openedValves)
-
-  function compareExpectedRelease(v1, v2) {
-    if (v1.distance === v2.distance) {
-      console.log(v1, v2, "eq", "Best", bestChoice(v1.name, v2.name, v1.rate - v2.rate))
-      return v1.rate - v2.rate
-    } else if (v1.distance < v2.distance) {
-      const order = v1.rate * (v2.distance - v1.distance + nbMinutesRemaining) - v2.rate
-      console.log(v1, v2, "<", order, "Best", bestChoice(v1.name, v2.name, order))
-      return order
-    } else {
-      const order = v1.rate - v2.rate * (v1.distance - v2.distance + 1)
-      console.log(v1, v2, ">", order, "Best", bestChoice(v1.name, v2.name, order))
-      return order
-    }
-  }
-
-  return interestingValves
-    .filter((valve) => !openedValves.includes(valve))
-    .map(valve => ({
-      name: valve,
-      rate: valvesByName[valve].rate,
-      distance: shortestPath(position, valve).length,
-    }))
-    .filter(({ distance }) => distance + 1 < nbMinutesRemaining)
-    .sort(compareExpectedRelease)
-    .map(({ name }) => name)
 }
 
 function bruteForceBestPath({ path = [], score = 0 } = {}) {
@@ -172,18 +131,6 @@ function bruteForceBestPath({ path = [], score = 0 } = {}) {
 
 async function part1() {
   return bruteForceBestPath().score
-}
-
-async function toGraphviz() {
-  await fs.writeFile(new URL("graphviz", import.meta.url), `digraph {
-  ${interestingValves
-    .map(valve => `${valve} [label="${valve} (${valvesByName[valve].rate})"];`)
-    .join("\n  ")}
-  ${valves
-    .flatMap(({ name, next }) => next
-      .map(nextValve => `${name} -> ${nextValve};`))
-    .join("\n  ")}
-}`)
 }
 
 async function part2() {
