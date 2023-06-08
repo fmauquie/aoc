@@ -52,71 +52,56 @@ function shortestPath(from, to) {
   return paths[pathKey]
 }
 
-function logMinute(minute, position, openedValves, releasing) {
-  console.log(`---Minute ${minute + 1}; Position: ${position}---`)
-  if (openedValves.length === 0) {
-    console.log("No valves are open.")
-  } else if (openedValves.length === 1) {
-    console.log(`Valve ${openedValves.join(", ")} is open, releasing ${releasing} pressure.`)
-  } else {
-    console.log(`Valves ${openedValves.join(", ")} are open, releasing ${releasing} pressure.`)
-  }
-}
+let pathScores = {}
 
-function computePathScore(path = [], log = false) {
-  let position = "AA"
-  let released = 0
-  let minutes = 0
+function computePathScore(path, maxMinutes) {
+  const key = path.join(",") + maxMinutes
+  if (!pathScores[key]) {
+    let position = "AA"
+    let released = 0
+    let minutes = 0
 
-  path.forEach((valve, index) => {
-    if (minutes === 30) {
-      return
-    }
+    path.forEach((valve, index) => {
+      if (minutes === maxMinutes) {
+        return
+      }
 
-    const releasing = path.slice(0, index)
-      .map(name => valvesByName[name].rate)
+      const releasing = path.slice(0, index)
+        .map(name => valvesByName[name].rate)
+        .reduce(sum, 0)
+      const toPosition = shortestPath(position, valve)
+
+      const nbHops = Math.min(toPosition.length, maxMinutes - minutes)
+
+      position = valve
+      minutes += nbHops
+      released += releasing * nbHops
+
+      if (minutes < maxMinutes) {
+        minutes++
+        released += releasing
+      }
+    })
+
+    const releasing = path.map(name => valvesByName[name].rate)
       .reduce(sum, 0)
-    const toPosition = shortestPath(position, valve)
 
-    const nbHops = Math.min(toPosition.length, 30 - minutes)
-    if (log) {
-      for (let i = 0; i < nbHops; i++) {
-        logMinute(minutes + i, toPosition[i - 1] ?? position, path.slice(0, index), releasing)
-        console.log((`Moving to ${toPosition[i]}, target ${valve}.`))
-      }
-    }
-
-    position = valve
-    minutes += nbHops
-    released += releasing * nbHops
-
-    if (minutes < 30) {
-      minutes++
-      released += releasing
-      if (log) {
-        logMinute(minutes - 1, position, path.slice(0, index), releasing)
-        console.log(`Opening valve ${position}.`)
-      }
-    }
-  })
-
-  const releasing = path.map(name => valvesByName[name].rate)
-    .reduce(sum, 0)
-
-  if (log) {
-    for (let i = 0; i < 30 - minutes; i++) {
-      logMinute(minutes + i, position, path, releasing)
-    }
+    pathScores[key] = released += releasing * (maxMinutes - minutes)
   }
-
-  return released += releasing * (30 - minutes)
+  return pathScores[key]
 }
 
 const interestingValves = valves.filter(({ rate }) => rate > 0)
   .map(({ name }) => name)
 
+let pathDurations = {}
+
 function pathDuration(path) {
-  return path.reduce((acc, valve, i) => acc + shortestPath(path[i - 1] ?? "AA", valve).length, 0) + path.length
+  const key = path.join(",")
+  if (!pathDurations[key]) {
+    pathDurations[key] = path.reduce((acc, valve, i) => acc + shortestPath(path[i - 1] ?? "AA", valve).length, 0) + path.length
+  }
+  return pathDurations[key]
 }
 
 function bruteForceBestPath({ path = [], score = 0 } = {}) {
@@ -124,9 +109,20 @@ function bruteForceBestPath({ path = [], score = 0 } = {}) {
     .map(valve => [...path, valve])
     .filter(nextPath => pathDuration(nextPath) < 30)
     .map(nextPath => bruteForceBestPath({
-      path: nextPath, score: computePathScore(nextPath),
+      path: nextPath, score: computePathScore(nextPath, 30),
     }))
     .reduce((acc, next) => next.score > acc.score ? next : acc, { path, score })
+}
+
+function computeAllPaths(maxMinutes, { path = [], score = 0 } = {}) {
+  return [
+    { path, score }, ...interestingValves.filter(valve => !path.includes(valve))
+      .map(valve => [...path, valve])
+      .filter(nextPath => pathDuration(nextPath) <= maxMinutes)
+      .flatMap(nextPath => computeAllPaths(maxMinutes, {
+        path: nextPath, score: computePathScore(nextPath, maxMinutes),
+      })),
+  ]
 }
 
 async function part1() {
@@ -134,10 +130,25 @@ async function part1() {
 }
 
 async function part2() {
-  // return (await readInput(import.meta.url))
+  const allPaths = computeAllPaths(26)
+    .sort(({ score: s1 }, { score: s2 }) => s2 - s1)
+
+  const bestPaths = allPaths.reduce((best, next, i) => {
+    const bestElephant = allPaths.slice(i)
+      .filter(({
+        path, score,
+      }) => (next.score + score > best.score) && !path.some((valve) => next.path.includes(valve)))
+      .at(0)
+
+    return bestElephant ? {
+      myPath: next,
+      elephantPath: bestElephant,
+      score: next.score + bestElephant.score,
+    } : best
+  }, { myPath: [], elephantPath: [], score: 0 })
+
+  return bestPaths.score
 }
 
 console.log(await part1().catch(console.error))
-/*
 console.log(await part2().catch(console.error))
-*/
